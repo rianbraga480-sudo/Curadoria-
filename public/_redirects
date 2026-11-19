@@ -1,0 +1,9 @@
+# URLs da versão anterior → nova arquitetura (301 preserva SEO e UTMs de anúncios)
+/dark-planner            /ferramentas/dark-planner/            301
+/dark-planner/*          /ferramentas/dark-planner/            301
+/whatsify-pro            /ferramentas/whatsify-pro/            301
+/whatsify-pro/*          /ferramentas/whatsify-pro/            301
+/privacidade.html        /politica-de-privacidade/             301
+/privacidade             /politica-de-privacidade/             301
+/categorias              /ferramentas/                         301
+/categorias/*            /ferramentas/                         301

@@ -1,0 +1,11 @@
+# Publicação na Netlify (mesmo provedor do site atual).
+[build]
+  command = "npm run build"
+  publish = "out"
+
+[build.environment]
+  NODE_VERSION = "22"
+  NEXT_TELEMETRY_DISABLED = "1"
+
+# O site é exportado como HTML estático: não precisamos do runtime de Next.js.
+# Se a Netlify instalar o plugin automaticamente, ele não atrapalha um export estático.
