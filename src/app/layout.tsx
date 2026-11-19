@@ -1,9 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import "@fontsource-variable/space-grotesk";
-import "@fontsource-variable/inter";
-import "@fontsource-variable/jetbrains-mono";
 import "./globals.css";
+import { inter, jetbrainsMono, spaceGrotesk } from "@/fonts";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { MotionRoot } from "@/components/motion/MotionRoot";
@@ -34,13 +32,13 @@ export const viewport: Viewport = {
 
 /**
  * Antes da primeira pintura: liga o modo de animação só quando o visitante
- * aceita movimento. Se o JS de animação não iniciar em 2,5 s, tudo aparece.
+ * aceita movimento. Se o JS de animação não iniciar em 4 s, tudo aparece.
  */
-const motionBoot = `(function(){try{var d=document.documentElement;if(!matchMedia('(prefers-reduced-motion: reduce)').matches){d.classList.add('js-motion');setTimeout(function(){if(!d.classList.contains('motion-ready'))d.classList.remove('js-motion')},2500)}}catch(e){}})();`;
+const motionBoot = `(function(){try{var d=document.documentElement;if(!matchMedia('(prefers-reduced-motion: reduce)').matches){d.classList.add('js-motion');setTimeout(function(){if(!d.classList.contains('motion-ready'))d.classList.remove('js-motion')},4000)}}catch(e){}})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
+    <html lang="pt-BR" suppressHydrationWarning className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: motionBoot }} />
         <link rel="dns-prefetch" href="https://pay.cakto.com.br" />

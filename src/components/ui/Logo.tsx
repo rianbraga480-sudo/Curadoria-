@@ -42,7 +42,7 @@ export function Logo({ compact = false }: { compact?: boolean }) {
       <LogoMark size={30} />
       {!compact && (
         <span className="flex flex-col leading-none">
-          <span className="font-display text-[0.95rem] font-semibold tracking-[0.18em] text-snow">CURADORIA</span>
+          <span className="font-display text-[0.95rem] font-semibold tracking-[0.18em] text-snow">CURADORIA</span>{" "}
           <span className="mono mt-1 text-[0.58rem] tracking-[0.42em] text-fog">DIGITAL</span>
         </span>
       )}

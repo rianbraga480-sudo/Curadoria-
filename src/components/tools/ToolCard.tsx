@@ -49,7 +49,7 @@ export function ToolCard({ tool, headingLevel = "h2" }: { tool: ToolSummary; hea
             <li key={c.slug} className="tag !text-[0.6rem]">{c.name}</li>
           ))}
         </ul>
-        <div className="mt-auto flex items-end justify-between gap-4 pt-7">
+        <div className="mt-auto flex flex-wrap items-end justify-between gap-4 pt-7">
           <p className="leading-tight">
             <span className="mono block text-[0.6rem] tracking-[0.18em] text-metal uppercase">a partir de</span>
             <span className="font-display text-xl text-snow">{formatPriceShort(tool.startingPrice)}</span>

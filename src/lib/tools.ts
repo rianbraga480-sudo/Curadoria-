@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { categories as rawCategories } from "@/content/categories";
 import { toolEntries } from "@/content/tools";
+import { compareGroups } from "@/content/compare-groups";
 import { categorySchema, toolSchema, type Category, type Tool } from "./schema";
 
 /**
@@ -31,6 +32,7 @@ function validate(): { tools: Tool[]; categories: Category[] } {
     for (const c of t.categories) {
       if (!catSlugs.has(c)) throw new Error(`${t.slug}: categoria inexistente "${c}"`);
     }
+    if (!compareGroups[t.compareGroup]) throw new Error(`${t.slug}: grupo de comparação inexistente "${t.compareGroup}"`);
     for (const offer of allOffers(t)) {
       const code = new URL(offer.checkoutUrl).pathname.replace(/\//g, "");
       if (checkoutCodes.has(code)) throw new Error(`${t.slug}: link de pagamento repetido (${code})`);
@@ -152,5 +154,48 @@ export function toSummary(t: Tool): ToolSummary {
     image: t.gallery[0] ?? t.heroImage,
     keywords: [t.name, t.tagline, t.shortDescription, ...t.features.map((f) => f.title), ...t.categories.map((c) => getCategory(c)?.name ?? c)].join(" "),
     pricesCheckedAt: t.pricing.checkedAt,
+  };
+}
+
+export type CompareRow = { label: string; value: string | string[] };
+export type CompareEntry = {
+  slug: string;
+  name: string;
+  logo: Tool["logo"];
+  monogram: string;
+  group: string;
+  groupName: string;
+  rows: CompareRow[];
+  entryCheckout: string;
+};
+
+/** Ficha padronizada de cada ferramenta para a comparação lado a lado. */
+export function toCompareEntry(t: Tool, groupName: string): CompareEntry {
+  const start = getStartingPrice(t);
+  const lowest = getLowestMonthlyEquivalent(t);
+  const brl = (n: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(n);
+  return {
+    slug: t.slug,
+    name: t.name,
+    logo: t.logo,
+    monogram: t.monogram,
+    group: t.compareGroup,
+    groupName,
+    entryCheckout: t.pricing.plans[0]!.offer.checkoutUrl,
+    rows: [
+      { label: "Finalidade", value: t.tagline },
+      { label: "Público indicado", value: t.audience.profiles.map((p) => p.title) },
+      { label: "Onde funciona", value: t.platform },
+      { label: "Funcionalidades principais", value: t.features.filter((f) => f.highlight).map((f) => `${f.title} (${f.availability})`) },
+      { label: "Outros recursos", value: t.features.filter((f) => !f.highlight).map((f) => f.title) },
+      { label: "Planos", value: t.pricing.plans.map((p) => `${p.name}: ${brl(p.offer.price)}/${p.offer.period === "mes" ? "mês" : p.offer.period}`) },
+      { label: "Preço inicial", value: `${brl(start.price)}/mês` },
+      { label: "Menor valor por mês", value: `${brl(lowest)} (à vista, em período maior quando houver)` },
+      { label: "Garantia", value: t.guarantee.summary },
+      { label: "Pagamento", value: `${t.payment.platform} · ${t.payment.methods}` },
+      { label: "Limitações principais", value: t.limitations.map((l) => l.title) },
+      { label: "Condições comerciais", value: t.subscription },
+      { label: "Preços conferidos em", value: t.pricing.checkedAt.split("-").reverse().join("/") },
+    ],
   };
 }

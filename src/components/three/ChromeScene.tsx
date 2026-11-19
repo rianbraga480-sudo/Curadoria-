@@ -132,12 +132,17 @@ function ChromeObject({
   detail,
   animate,
   pointer,
+  onSlow,
 }: {
   variant: ChromeVariant;
   detail: number;
   animate: boolean;
   pointer: React.RefObject<{ x: number; y: number }>;
+  onSlow?: () => void;
 }) {
+  // Guarda de desempenho: mede os primeiros quadros (após 1 s de aquecimento).
+  // Abaixo de ~25 fps, o 3D é desligado e a imagem estática volta.
+  const perf = useRef({ t: 0, frames: 0, sum: 0, done: false });
   useStudioEnvironment();
   const group = useRef<THREE.Group>(null);
   const inner = useRef<THREE.Mesh>(null);
@@ -169,6 +174,18 @@ function ChromeObject({
   );
 
   useFrame((state, delta) => {
+    const pf = perf.current;
+    if (!pf.done && animate) {
+      pf.t += delta;
+      if (pf.t > 1) {
+        pf.frames++;
+        pf.sum += delta;
+        if (pf.frames >= 45) {
+          pf.done = true;
+          if (pf.sum / pf.frames > 1 / 25) onSlow?.();
+        }
+      }
+    }
     const g = group.current;
     const m = inner.current;
     if (!g || !m) return;
@@ -196,10 +213,12 @@ export default function ChromeScene({
   variant = "sphere",
   className = "",
   onReady,
+  onSlow,
 }: {
   variant?: ChromeVariant;
   className?: string;
   onReady?: () => void;
+  onSlow?: () => void;
 }) {
   const wrap = useRef<HTMLDivElement>(null);
   const pointer = useRef({ x: 0, y: 0 });
@@ -244,7 +263,7 @@ export default function ChromeScene({
           requestAnimationFrame(() => onReady?.());
         }}
       >
-        <ChromeObject variant={variant} detail={env.mobile ? 64 : 112} animate={!env.reduce} pointer={pointer} />
+        <ChromeObject variant={variant} detail={env.mobile ? 64 : 112} animate={!env.reduce} pointer={pointer} onSlow={onSlow} />
       </Canvas>
     </div>
   );

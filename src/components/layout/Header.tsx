@@ -82,8 +82,9 @@ export function Header() {
         } ${solid || open ? "border-b border-white/[0.07] bg-obsidian/70 backdrop-blur-xl" : "border-b border-transparent"}`}
       >
         <div className="container-x flex h-[var(--header-h)] items-center gap-6">
-          <Link href="/" aria-label="Curadoria Digital — página inicial" className="relative z-10 mr-auto">
+          <Link href="/" className="relative z-10 mr-auto">
             <Logo />
+            <span className="sr-only"> — página inicial</span>
           </Link>
 
           <nav aria-label="Principal" className="hidden lg:block">

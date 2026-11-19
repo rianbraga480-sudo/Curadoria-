@@ -16,6 +16,7 @@ export function Hero({ pricesCheckedAt, toolCount }: { pricesCheckedAt: string; 
   const items = facts(pricesCheckedAt);
   return (
     <section
+      data-hero
       aria-labelledby="hero-title"
       className="relative isolate flex min-h-[100svh] flex-col overflow-hidden pt-[calc(var(--header-h)+2.25rem)]"
     >
@@ -34,7 +35,7 @@ export function Hero({ pricesCheckedAt, toolCount }: { pricesCheckedAt: string; 
       </div>
 
       <div className="container-x relative z-10 flex flex-col items-center text-center">
-        <p className="tag mb-8" data-reveal="fade">
+        <p className="tag mb-8 max-w-full !whitespace-normal text-center" data-reveal="fade">
           <span className="size-1.5 rounded-full bg-snow shadow-[0_0_10px_#fff]" />
           Curadoria independente de ferramentas digitais
         </p>
@@ -65,20 +66,20 @@ export function Hero({ pricesCheckedAt, toolCount }: { pricesCheckedAt: string; 
 
       {/* objeto cromado central */}
       <div className="relative z-0 mx-auto mt-10 w-[min(94vw,760px)] md:mt-14" data-parallax="0.12">
-        <ChromeStage variant="sphere" className="aspect-square w-full" />
+        <ChromeStage variant="sphere" className="relative aspect-square w-full" />
         <div
           aria-hidden="true"
           className="absolute inset-x-[18%] bottom-[2%] h-10 rounded-[50%] bg-white/20 blur-3xl"
         />
       </div>
 
-      <div className="relative z-10 mt-auto border-t border-white/[0.07] bg-obsidian/40 backdrop-blur-sm">
+      <div className="relative z-10 mt-auto border-t border-white/[0.07] bg-obsidian/80">
         <div className="container-x flex items-center gap-6 py-4">
           <span className="mono hidden shrink-0 text-[0.68rem] tracking-[0.2em] text-metal uppercase md:block">
             {String(toolCount).padStart(2, "0")} ferramentas publicadas
           </span>
           <div className="relative flex-1 overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
-            <ul className="flex w-max animate-[marquee_38s_linear_infinite] gap-10">
+            <ul className="flex w-max animate-[marquee_38s_linear_infinite] gap-10 will-change-transform">
               {[...items, ...items].map((f, i) => (
                 <li
                   key={i}

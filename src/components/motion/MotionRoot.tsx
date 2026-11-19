@@ -2,9 +2,7 @@
 
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Lenis from "lenis";
+import type Lenis from "lenis";
 
 /**
  * Linguagem de movimento da Curadoria Digital.
@@ -24,6 +22,24 @@ import Lenis from "lenis";
 
 let lenis: Lenis | null = null;
 export const getLenis = () => lenis;
+
+/**
+ * GSAP, ScrollTrigger e Lenis saem do caminho crítico: são baixados depois da
+ * primeira pintura (o conteúdo acima da dobra já anima em CSS).
+ */
+type MotionLibs = {
+  gsap: typeof import("gsap").gsap;
+  ScrollTrigger: typeof import("gsap/ScrollTrigger").ScrollTrigger;
+  Lenis: typeof import("lenis").default;
+};
+let libs: Promise<MotionLibs> | null = null;
+function loadMotion(): Promise<MotionLibs> {
+  libs ??= Promise.all([import("gsap"), import("gsap/ScrollTrigger"), import("lenis")]).then(([g, st, l]) => {
+    g.gsap.registerPlugin(st.ScrollTrigger);
+    return { gsap: g.gsap, ScrollTrigger: st.ScrollTrigger, Lenis: l.default };
+  });
+  return libs;
+}
 
 function splitTitle(el: HTMLElement) {
   if (el.dataset.split === "1") return;
@@ -70,20 +86,27 @@ export function MotionRoot() {
 
   // Lenis + ScrollTrigger: uma vez por sessão
   useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
     if (reduce || !fine) return;
-
-    lenis = new Lenis({ duration: 1.1, anchors: { offset: -88 }, autoRaf: false });
-    lenis.on("scroll", ScrollTrigger.update);
-    const tick = (time: number) => lenis?.raf(time * 1000);
-    gsap.ticker.add(tick);
-    gsap.ticker.lagSmoothing(0);
+    let cancelled = false;
+    let cleanup = () => {};
+    loadMotion().then(({ gsap, ScrollTrigger, Lenis }) => {
+      if (cancelled) return;
+      lenis = new Lenis({ duration: 1.1, anchors: { offset: -88 }, autoRaf: false });
+      lenis.on("scroll", ScrollTrigger.update);
+      const tick = (time: number) => lenis?.raf(time * 1000);
+      gsap.ticker.add(tick);
+      gsap.ticker.lagSmoothing(0);
+      cleanup = () => {
+        gsap.ticker.remove(tick);
+        lenis?.destroy();
+        lenis = null;
+      };
+    });
     return () => {
-      gsap.ticker.remove(tick);
-      lenis?.destroy();
-      lenis = null;
+      cancelled = true;
+      cleanup();
     };
   }, []);
 
@@ -113,11 +136,19 @@ export function MotionRoot() {
       return;
     }
 
+    let cancelled = false;
+    let teardown = () => {};
+    loadMotion().then(({ gsap, ScrollTrigger }) => {
+    if (cancelled) return;
+    // elementos acima da dobra ([data-hero]) já animam em CSS
+    const pick = <T extends HTMLElement>(sel: string) =>
+      gsap.utils.toArray<T>(sel).filter((el) => !el.closest("[data-hero]"));
+
     const ctx = gsap.context(() => {
       const vh = window.innerHeight;
       const inView = (el: Element) => el.getBoundingClientRect().top < vh * 0.92;
 
-      gsap.utils.toArray<HTMLElement>('[data-reveal="title"]').forEach((el) => {
+      pick<HTMLElement>('[data-reveal="title"]').forEach((el) => {
         splitTitle(el);
         const words = el.querySelectorAll(".reveal-line > span");
         gsap.set(el, { opacity: 1 });
@@ -132,7 +163,7 @@ export function MotionRoot() {
         });
       });
 
-      gsap.utils.toArray<HTMLElement>('[data-reveal="fade"]').forEach((el) => {
+      pick<HTMLElement>('[data-reveal="fade"]').forEach((el) => {
         gsap.fromTo(
           el,
           { opacity: 0, y: 28 },
@@ -147,7 +178,7 @@ export function MotionRoot() {
         );
       });
 
-      gsap.utils.toArray<HTMLElement>('[data-reveal="stagger"]').forEach((el) => {
+      pick<HTMLElement>('[data-reveal="stagger"]').forEach((el) => {
         gsap.set(el, { opacity: 1 });
         gsap.fromTo(
           el.children,
@@ -164,7 +195,7 @@ export function MotionRoot() {
         );
       });
 
-      gsap.utils.toArray<HTMLElement>('[data-reveal="clip"]').forEach((el) => {
+      pick<HTMLElement>('[data-reveal="clip"]').forEach((el) => {
         gsap.fromTo(
           el,
           { opacity: 1, clipPath: "inset(18% 12% 18% 12% round 24px)", scale: 1.04 },
@@ -221,10 +252,15 @@ export function MotionRoot() {
     const refresh = () => ScrollTrigger.refresh();
     window.addEventListener("load", refresh);
     const t = window.setTimeout(refresh, 600);
-    return () => {
+    teardown = () => {
       window.removeEventListener("load", refresh);
       window.clearTimeout(t);
       ctx.revert();
+    };
+    });
+    return () => {
+      cancelled = true;
+      teardown();
     };
   }, [pathname]);
 

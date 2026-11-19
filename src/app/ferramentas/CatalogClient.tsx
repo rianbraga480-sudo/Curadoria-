@@ -151,7 +151,7 @@ export function CatalogClient({ tools, categories }: { tools: ToolSummary[]; cat
       {results.length > 0 ? (
         <ul className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {results.map((t) => (
-            <li key={t.slug}>
+            <li key={t.slug} className="min-w-0">
               <ToolCard tool={t} />
             </li>
           ))}
