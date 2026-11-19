@@ -20,7 +20,7 @@ function PlanCard({ plan, featured }: { plan: Plan; featured: boolean }) {
         </h3>
         {plan.badge && <span className="tag !border-white/40 !text-snow">{plan.badge}</span>}
       </div>
-      <p className="mt-2 text-sm text-fog">{plan.description}</p>
+      <p className="mt-2 text-sm text-fog lg:min-h-[2.6rem]">{plan.description}</p>
 
       <p className="mt-7 flex items-baseline gap-1.5">
         <span className="chrome-text font-display text-[3.2rem] leading-none font-medium tracking-tight">
